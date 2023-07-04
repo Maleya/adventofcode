@@ -36,16 +36,12 @@ func (m *monkey) inspect_and_operate() int {
 	item := m.dequeue_first_item()
 	result := m.operation(item)
 	calming := result % 9699690 //(13 * 7 * 19 * 2 * 5 * 3 * 11 * 17) // LCM of divisors
-	// calming := result % 96577
-	// bordem := m.get_bored(calming, 3)
-	// bordem := m.get_bored(result, 3)
 	return calming
 }
 
 func (m *monkey) perform_turn() (int, int) {
 	item := m.inspect_and_operate()
 	pass_to := m.throw_to[m.test(item)]
-	// fmt.Println(m.name, "passes", item, "to", pass_to)
 	return item, pass_to
 }
 
@@ -58,9 +54,7 @@ func (t *troop) total_inspect_tally() []int {
 	counts := make([]int, len(t.members))
 	for i, m := range t.members {
 		counts[i] = m.inspect_counter
-		// counts = append(counts, m.inspect_counter)
 	}
-	// sort.Ints(counts)
 	return counts
 
 }
@@ -206,14 +200,7 @@ func main() {
 		throw_to:        map[bool]int{true: 6, false: 2},
 		inspect_counter: 0,
 	}
-	// t := troop{members: []monkey{m0_example, m1_example, m2_example, m3_example}}
 	t := troop{members: []monkey{m0, m1, m2, m3, m4, m5, m6, m7}}
-	fmt.Println("troop size:", len(t.members))
-	// t := t_real
-
-	// fmt.Println("old", t_example)
-	// fmt.Println("new", t_real)
-	// fmt.Println("")
 
 	rounds := 10000
 	for ii := 0; ii < rounds; ii++ {
@@ -225,12 +212,7 @@ func main() {
 	// fmt.Println("tally test3:", t_real.total_inspect_tally())
 
 	sort.Ints(passes)
-	fmt.Println("tally sorted:", passes)
-	fmt.Println("ans", passes[len(passes)-1]*passes[len(passes)-2])
-
-	// print the troop
-	for i := 0; i < len(t.members); i++ {
-		fmt.Println(t.members[i])
-	}
+	// fmt.Println("tally sorted:", passes)
+	fmt.Println("answer:", passes[len(passes)-1]*passes[len(passes)-2])
 
 }
