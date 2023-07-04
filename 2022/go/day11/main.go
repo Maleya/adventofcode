@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math"
+	"sort"
 )
 
 type monkey struct {
@@ -17,15 +17,13 @@ type monkey struct {
 // monkey methods:
 func (m *monkey) get_bored(item int, divide_by int) int {
 	ans := float64(item / divide_by)
-	return int(math.Round(ans))
+	return int(ans)
 }
 
 func (m *monkey) dequeue_first_item() int {
 	dequeue := m.items[0]
 	m.items = m.items[1:]
-	// fmt.Println(m.inspect_counter)
 	m.inspect_counter += 1
-	// fmt.Println(m.inspect_counter)
 	return dequeue
 }
 
@@ -37,7 +35,8 @@ func (m *monkey) inspect_and_operate() int {
 	// inspect, worry increse ,bordem.
 	item := m.dequeue_first_item()
 	result := m.operation(item)
-	return m.get_bored(result, 3)
+	bordem := m.get_bored(result, 3)
+	return bordem
 }
 
 func (m *monkey) perform_turn() (int, int) {
@@ -53,18 +52,22 @@ type troop struct {
 }
 
 // troop methods
-func (t *troop) total_inspect_tally() {
+func (t *troop) total_inspect_tally() []int {
+	counts := make([]int, len(t.members))
 	for _, m := range t.members {
-		count := m.inspect_counter
-		fmt.Println(count)
+		counts = append(counts, m.inspect_counter)
 	}
+	sort.Ints(counts)
+	return counts
+
 }
 
 func (t *troop) perform_round() {
-	for _, monkey := range t.members {
-		for len(monkey.items) > 0 {
-			// monkey.dequeue_first_item()
-			item, recipient := monkey.perform_turn()
+	for m := 0; m < len(t.members); m++ {
+		// fmt.Println("m", m, t.members[m])
+		for len(t.members[m].items) > 0 {
+			// fmt.Println(len(t.members[m].items))
+			item, recipient := t.members[m].perform_turn()
 			t.members[recipient].enqueue_item(item)
 
 		}
@@ -79,8 +82,6 @@ func divisble_by_n_fn(n int) func(old int) bool {
 }
 
 func main() {
-	// 	reminder: your queue pops are bad.
-
 	// definitely not going to write a parser.
 	m0 := monkey{
 		name:  "Monkey 0",
@@ -88,7 +89,7 @@ func main() {
 		operation: func(old int) int {
 			return old * 19
 		},
-		test:            divisble_by_n_fn(11),
+		test:            divisble_by_n_fn(23),
 		throw_to:        map[bool]int{true: 2, false: 3},
 		inspect_counter: 0,
 	}
@@ -124,48 +125,17 @@ func main() {
 	}
 
 	t := troop{members: []monkey{m0, m1, m2, m3}}
-	// fmt.Println(t)
 
-	// m0 examples
+	rounds := 20
+	for ii := 0; ii < rounds; ii++ {
+		t.perform_round()
+	}
+	passes := t.total_inspect_tally()
+	fmt.Println("ans", passes[len(passes)-1]*passes[len(passes)-2])
 
-	// THIS IS THE PROBLEM:
-	fmt.Println("before:", t.members[0].inspect_counter)
-	t.members[0].perform_turn()
-	fmt.Println("after:", t.members[0].inspect_counter)
-
-	// THE METHODS OF THE TROOP DONT WORK?
-	// t.perform_round()
-	// t.total_inspect_tally()
-	// for _, m := range t.members {
-	// 	fmt.Println(m)
-	// }
-
-	// fmt.Println("all items before pop:", m0.items)
-
-	// // item := m0.items[0]
-	// item := m0.dequeue_first_item()
-	// fmt.Println("pre worry item:", item)
-	// fmt.Println("all items after pop:", m0.items)
-	// worry := m0.operation(item)
-	// fmt.Println("post worry item:", worry)
-	// bored := m0.get_bored(worry, 3)
-	// fmt.Println("got bored:", bored)
-	// result := m0.test(bored)
-	// fmt.Println("result of test:", result)
-	// throw := m0.throw_to[result]
-	// fmt.Println("will throw to", throw)
-
-	// input, _ := ioutil.ReadFile("example.txt")
-	// input, _ := ioutil.ReadFile("example1.txt")
-	// input, _ := ioutil.ReadFile("input.txt")
-	// splitInput := strings.Split(strings.TrimSpace(string(input)), "\n")
-
-	// for i := 0; i < len(splitInput); i++ {
-	// 	fmt.Println(splitInput[i])
-	// 	// fmt.Sscanf(splitInput[i], "%s %d", &inst.command, &inst.arg)
-
-	// }
-	// fmt.Println("sum", sum)
-	// make terminal 40 wide.
+	// print the troop
+	for i := 0; i < len(t.members); i++ {
+		fmt.Println(t.members[i])
+	}
 
 }

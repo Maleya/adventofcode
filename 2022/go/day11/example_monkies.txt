@@ -1,0 +1,40 @@
+m0 := monkey{
+    name:  "Monkey 0",
+    items: []int64{79, 98},
+    operation: func(old int64) int64 {
+        return old * 19
+    },
+    test:            divisble_by_n_fn(23),
+    throw_to:        map[bool]int64{true: 2, false: 3},
+    inspect_counter: 0,
+}
+m1 := monkey{
+    name:  "Monkey 1",
+    items: []int64{54, 65, 75, 74},
+    operation: func(old int64) int64 {
+        return old + 6
+    },
+    test:            divisble_by_n_fn(19),
+    throw_to:        map[bool]int64{true: 2, false: 0},
+    inspect_counter: 0,
+}
+m2 := monkey{
+    name:  "Monkey 2",
+    items: []int64{79, 60, 97},
+    operation: func(old int64) int64 {
+        return old * old
+    },
+    test:            divisble_by_n_fn(13),
+    throw_to:        map[bool]int64{true: 1, false: 3},
+    inspect_counter: 0,
+}
+m3 := monkey{
+    name:  "Monkey 3",
+    items: []int64{74},
+    operation: func(old int64) int64 {
+        return old + 3
+    },
+    test:            divisble_by_n_fn(17),
+    throw_to:        map[bool]int64{true: 0, false: 1},
+    inspect_counter: 0,
+}
