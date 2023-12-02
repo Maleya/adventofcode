@@ -8,22 +8,18 @@ import (
 )
 
 func main() {
-	// fileName := "example.txt"
+	// fileName := "example_a.txt"
+	// fileName := "example_b.txt"
 	fileName := "input.txt"
 
-	file, err := os.Open(fileName)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		os.Exit(1)
-	}
+	file, _ := os.Open(fileName)
 	defer file.Close()
-
-	// Read the file content
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Println("Error reading file:", err)
-		os.Exit(1)
-	}
+	content, _ := io.ReadAll(file)
 
 	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
+	for _, line := range splitInput {
+
+		fmt.Println(line)
+
+	}
 }
