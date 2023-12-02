@@ -1,6 +1,5 @@
 package main
 
-// do this with channels?
 import (
 	"fmt"
 	"io"
@@ -10,44 +9,45 @@ import (
 	"unicode"
 )
 
-// return the digits in the string in order
-func strtoint(s string) int {
-	fmt.Println(s)
+func extract_digits(s string) string {
+	var sb strings.Builder
+
 	for _, char := range s {
-		// println("char", string(char))
 		if unicode.IsDigit(char) {
-			if i, _ := strconv.Atoi(string(char)); i != 0 { //no need for if here
-				println("test", i)
-				fmt.Println("it was a digit:", string(char))
-			}
-
+			sb.WriteString(string(char))
 		}
-
 	}
-	return 0
+	return sb.String()
+}
+
+// return the first and last digits
+func combine_first_last(s string) int {
+	firstDigit := string(s[0])
+	lastDigit := string(s[len(s)-1])
+	combined_digits, _ := strconv.Atoi(firstDigit + lastDigit)
+	return combined_digits
 }
 
 func main() {
-	fileName := "example.txt"
+	fileName := "example_a.txt"
 	// fileName := "input.txt"
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
 		os.Exit(1)
 	}
 	defer file.Close()
-
-	// Read the file content
 	content, err := io.ReadAll(file)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
 		os.Exit(1)
 	}
 
 	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
-
+	var final_sum int
 	for _, line := range splitInput {
-		strtoint(line)
+
+		digits_str := extract_digits(line)
+		final_sum += combine_first_last(digits_str)
 	}
+	fmt.Println("final answer", final_sum)
 }
