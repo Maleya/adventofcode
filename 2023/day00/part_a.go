@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	// fileName := "example_a.txt"
-	// fileName := "example_b.txt"
+	// fileName := "example.txt"
 	fileName := "input.txt"
 
 	file, _ := os.Open(fileName)
