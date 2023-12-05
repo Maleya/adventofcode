@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -38,22 +39,52 @@ func parseNumbers(numbersStr string) ([]int, error) {
 	return numbers, nil
 }
 
+func countoverlap(number1, numbers2 []int) int {
+	//count overlap. How many of numbers2 are in numbers1
+	counter := 0
+	for _, num2 := range numbers2 {
+		for _, num1 := range number1 {
+			if num1 == num2 {
+				counter++
+			}
+
+		}
+	}
+	return counter
+}
+func pointscounter(no_matches int) int {
+
+	if no_matches == 0 {
+		return 0
+	}
+	ans := math.Pow(2.0, float64(no_matches-1))
+	return int(ans)
+
+}
+
 func main() {
-	fileName := "example.txt"
-	// fileName := "input.txt"
+	// fileName := "example.txt"
+	fileName := "input.txt"
 
 	file, _ := os.Open(fileName)
 	defer file.Close()
 	content, _ := io.ReadAll(file)
+	part_a := 0
 
 	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 	for _, line := range splitInput {
-		fmt.Println(line)
+		// fmt.Println(line)
 
-		cardName, numbers1, numbers2, _ := parseInput(line)
-		fmt.Println("Card Name:", cardName)
-		fmt.Println("Numbers Set 1:", numbers1)
-		fmt.Println("Numbers Set 2:", numbers2)
+		_, numbers1, numbers2, _ := parseInput(line)
+		// fmt.Println("Card Name:", cardName)
+		overlap := countoverlap(numbers1, numbers2)
+		// fmt.Println("overlap", overlap)
+		final := pointscounter(overlap)
+		part_a += final
+
+		// fmt.Println("Numbers Set 1:", numbers1)
+		// fmt.Println("Numbers Set 2:", numbers2)
 
 	}
+	fmt.Println("part_a:", part_a)
 }
