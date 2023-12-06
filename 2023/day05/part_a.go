@@ -8,17 +8,13 @@ import (
 	"strings"
 )
 
-type SeedData struct {
-	Seeds []int
-}
-
 type MapData struct {
 	Title string
 	Rows  [][]int
 }
 
-func parseInput(lines []string) (SeedData, []MapData) {
-	var seedData SeedData
+func parseInput(lines []string) ([]int, []MapData) {
+	var seedData []int
 	var mapData []MapData
 
 	for i := 0; i < len(lines); i++ {
@@ -41,10 +37,10 @@ func parseInput(lines []string) (SeedData, []MapData) {
 	return seedData, mapData
 }
 
-func parseSeeds(line string) SeedData {
+func parseSeeds(line string) []int {
 	seedStr := strings.TrimPrefix(line, "seeds:")
 	seedValues := parseIntSlice(seedStr)
-	return SeedData{Seeds: seedValues}
+	return seedValues
 }
 
 func parseRow(line string) []int {
@@ -64,6 +60,14 @@ func parseIntSlice(s string) []int {
 	}
 	return nums
 }
+func range_map(input, dest, source, length int) int {
+	if input < source || input > source+length {
+		return input
+	} else {
+		return input + (dest - source)
+	}
+
+}
 
 func main() {
 	fileName := "example.txt"
@@ -76,11 +80,16 @@ func main() {
 	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 	seedData, mapData := parseInput(splitInput)
 
-	fmt.Println("Seeds:", seedData.Seeds)
+	fmt.Println("Seeds:", seedData)
 	fmt.Println("Maps:")
 	for _, m := range mapData {
 		fmt.Println("Title:", m.Title)
 		fmt.Println("Rows:", m.Rows)
 		fmt.Println()
+	}
+	// make a struct that contains a group of these and run through them all.
+	for i := 0; i < 100; i++ {
+		fmt.Println(range_map(i, 70, 50, 5))
+
 	}
 }
