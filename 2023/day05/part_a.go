@@ -9,8 +9,9 @@ import (
 )
 
 type MapData struct {
-	Title string
-	Rows  [][]int
+	Title      string
+	Rows       [][]int
+	range_maps []func(input int) (int, bool)
 }
 
 type Funcmap struct {
@@ -18,16 +19,19 @@ type Funcmap struct {
 	funcs []func(input, dest, source, length int) int
 }
 
-func make_funcmap(title string, funcs func(input, dest, source, length int) int, data [][]int) Funcmap {
-
-	fmt.Println("Making funcmap with", data)
-
-	for i := 0; i < len(data); i++ {
-		fmt.Println("row data: with", data[i])
-
+func (m *MapData) calculate(input int) int {
+	var in_range bool
+	// fmt.Println("function input:", input)
+	for i := 0; i < len(m.Rows); i++ {
+		// fmt.Println("loop start:", input)
+		input, in_range = range_map(input, m.Rows[i][0], m.Rows[i][1], m.Rows[i][2])
+		// fmt.Println("loop end:", input)
+		if in_range {
+			// remember: numbers pass only one map.
+			break
+		}
 	}
-
-	return Funcmap{Title: title, funcs: [funcs]}
+	return input
 }
 
 func parseInput(lines []string) ([]int, []MapData) {
@@ -77,13 +81,13 @@ func parseIntSlice(s string) []int {
 	}
 	return nums
 }
-func range_map(input, dest, source, length int) int {
-	if input < source || input > source+length {
-		return input
-	} else {
-		return input + (dest - source)
-	}
 
+func range_map(input, dest, source, length int) (int, bool) {
+	if input < source || input > source+length {
+		return input, false
+	} else {
+		return input + (dest - source), true
+	}
 }
 
 func main() {
@@ -95,21 +99,22 @@ func main() {
 	content, _ := io.ReadAll(file)
 
 	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
-	seedData, mapData := parseInput(splitInput)
+	seedData, mapData_list := parseInput(splitInput)
+	part_a := 99999999999
 
-	fmt.Println("Seeds:", seedData)
-	fmt.Println("Maps:")
-	for _, m := range mapData {
-		fmt.Println("Title:", m.Title)
-		fmt.Println("Rows:", m.Rows)
-		fmt.Println()
+	for _, seed := range seedData {
+		for i, m := range mapData_list {
+			output := m.calculate(seed)
+			if i == len(mapData_list)-1 {
+				// fmt.Println(m.Title)
+				// fmt.Printf("Input: %d, Output: %d\n", seed, output)
+				if output < part_a {
+					part_a = output
+				}
+
+			}
+			seed = output
+		}
 	}
-
-	data := mapData[0].Rows
-	make_funcmap("test", range_map, data)
-	// make a struct that contains a group of these and run through them all.
-	// for i := 0; i < 100; i++ {
-	// 	fmt.Println(range_map(i, 70, 50, 5))
-
-	// }
+	fmt.Println("part_a:", part_a)
 }
