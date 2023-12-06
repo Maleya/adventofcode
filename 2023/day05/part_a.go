@@ -13,6 +13,23 @@ type MapData struct {
 	Rows  [][]int
 }
 
+type Funcmap struct {
+	Title string
+	funcs []func(input, dest, source, length int) int
+}
+
+func make_funcmap(title string, funcs func(input, dest, source, length int) int, data [][]int) Funcmap {
+
+	fmt.Println("Making funcmap with", data)
+
+	for i := 0; i < len(data); i++ {
+		fmt.Println("row data: with", data[i])
+
+	}
+
+	return Funcmap{Title: title, funcs: [funcs]}
+}
+
 func parseInput(lines []string) ([]int, []MapData) {
 	var seedData []int
 	var mapData []MapData
@@ -87,9 +104,12 @@ func main() {
 		fmt.Println("Rows:", m.Rows)
 		fmt.Println()
 	}
-	// make a struct that contains a group of these and run through them all.
-	for i := 0; i < 100; i++ {
-		fmt.Println(range_map(i, 70, 50, 5))
 
-	}
+	data := mapData[0].Rows
+	make_funcmap("test", range_map, data)
+	// make a struct that contains a group of these and run through them all.
+	// for i := 0; i < 100; i++ {
+	// 	fmt.Println(range_map(i, 70, 50, 5))
+
+	// }
 }
