@@ -122,7 +122,7 @@ func main() {
 
 	part_b := int(^uint(0) >> 1)
 	seedData = computePairs(seedData)
-	seedData = []int{82}
+	// seedData = []int{82}
 	var output int
 
 	for _, seed := range seedData {
@@ -131,7 +131,6 @@ func main() {
 		if output < part_b {
 			part_b = output
 		}
-
 	}
 
 	fmt.Println("part_b:", part_b)
