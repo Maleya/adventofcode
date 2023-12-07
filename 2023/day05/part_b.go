@@ -84,13 +84,13 @@ func computePairs(input []int) []int {
 }
 
 func (m *MapData) calculate(input int) int {
-	fmt.Println(m.Title)
+	// fmt.Println(m.Title)
 	for i := 0; i < len(m.Rows); i++ {
 		dest := m.Rows[i][0]
 		source := m.Rows[i][1]
 		length := m.Rows[i][2]
 
-		if input >= source && input <= source+length {
+		if input >= source && input < source+length {
 			// fmt.Println(input, input+(dest-source))
 			return input + (dest - source)
 		}
@@ -100,7 +100,6 @@ func (m *MapData) calculate(input int) int {
 }
 
 func compute_loc(input int, mapData_list []MapData) int {
-	// smallest := 99999999999
 	var output int
 	for _, m := range mapData_list {
 		output = m.calculate(input)
@@ -110,8 +109,8 @@ func compute_loc(input int, mapData_list []MapData) int {
 }
 
 func main() {
-	fileName := "example.txt"
-	// fileName := "input.txt"
+	// fileName := "example.txt"
+	fileName := "input.txt"
 
 	file, _ := os.Open(fileName)
 	defer file.Close()

@@ -11,29 +11,13 @@ import (
 )
 
 type MapData struct {
-	Title      string
-	Rows       [][]int
-	range_maps []func(input int) (int, bool)
+	Title string
+	Rows  [][]int
 }
 
 type Funcmap struct {
 	Title string
 	funcs []func(input, dest, source, length int) int
-}
-
-func (m *MapData) old_calculate(input int) int {
-	var in_range bool
-	// fmt.Println("function input:", input)
-	for i := 0; i < len(m.Rows); i++ {
-		// fmt.Println("loop start:", input)
-		input, in_range = range_map(input, m.Rows[i][0], m.Rows[i][1], m.Rows[i][2])
-		// fmt.Println("loop end:", input)
-		if in_range {
-			// remember: numbers pass only one map.
-			break
-		}
-	}
-	return input
 }
 
 func (m *MapData) calculate(input int) int {
@@ -42,7 +26,7 @@ func (m *MapData) calculate(input int) int {
 		source := m.Rows[i][1]
 		length := m.Rows[i][2]
 
-		if input >= source && input <= source+length {
+		if input >= source && input < source+length {
 			return input + (dest - source)
 		}
 	}
@@ -128,10 +112,9 @@ func compute_loc(input int, mapData_list []MapData) int {
 }
 
 func findMin(inputChannel <-chan int, resultChannel chan<- int, wg *sync.WaitGroup) {
-
+	// reuse this format one day
 	min := <-inputChannel
 	for value := range inputChannel {
-		// fmt.Println(value, min)
 		if value < min {
 			min = value
 		}
@@ -152,11 +135,7 @@ func main() {
 	seedData, mapData_list := parseInput(splitInput)
 	start := time.Now()
 
-	// part_a := 99999999999
 	full_range_input := computePairs(seedData)
-	// fmt.Println(full_range_input)
-
-	// start of crazy code gpt -------------
 
 	inputChannel := make(chan int)
 	resultChannel := make(chan int)
@@ -176,7 +155,6 @@ func main() {
 	}()
 
 	wg.Wait()
-	// close(resultChannel)
 
 	minimum := <-resultChannel
 	fmt.Println("Minimum value found:", minimum)
