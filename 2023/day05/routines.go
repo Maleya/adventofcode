@@ -21,7 +21,7 @@ type Funcmap struct {
 	funcs []func(input, dest, source, length int) int
 }
 
-func (m *MapData) calculate(input int) int {
+func (m *MapData) old_calculate(input int) int {
 	var in_range bool
 	// fmt.Println("function input:", input)
 	for i := 0; i < len(m.Rows); i++ {
@@ -31,6 +31,19 @@ func (m *MapData) calculate(input int) int {
 		if in_range {
 			// remember: numbers pass only one map.
 			break
+		}
+	}
+	return input
+}
+
+func (m *MapData) calculate(input int) int {
+	for i := 0; i < len(m.Rows); i++ {
+		dest := m.Rows[i][0]
+		source := m.Rows[i][1]
+		length := m.Rows[i][2]
+
+		if input >= source && input <= source+length {
+			return input + (dest - source)
 		}
 	}
 	return input

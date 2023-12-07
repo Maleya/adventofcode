@@ -10,29 +10,13 @@ import (
 )
 
 type MapData struct {
-	Title      string
-	Rows       [][]int
-	range_maps []func(input int) (int, bool)
+	Title string
+	Rows  [][]int
 }
 
 type Funcmap struct {
 	Title string
 	funcs []func(input, dest, source, length int) int
-}
-
-func (m *MapData) calculate(input int) int {
-	var in_range bool
-	// fmt.Println("function input:", input)
-	for i := 0; i < len(m.Rows); i++ {
-		// fmt.Println("loop start:", input)
-		input, in_range = range_map(input, m.Rows[i][0], m.Rows[i][1], m.Rows[i][2])
-		// fmt.Println("loop end:", input)
-		if in_range {
-			// remember: numbers pass only one map.
-			break
-		}
-	}
-	return input
 }
 
 func parseInput(lines []string) ([]int, []MapData) {
@@ -83,13 +67,6 @@ func parseIntSlice(s string) []int {
 	return nums
 }
 
-func range_map(input, dest, source, length int) (int, bool) {
-	if input < source || input > source+length {
-		return input, false
-	} else {
-		return input + (dest - source), true
-	}
-}
 func computePairs(input []int) []int {
 	var result []int
 
@@ -105,6 +82,23 @@ func computePairs(input []int) []int {
 
 	return result
 }
+
+func (m *MapData) calculate(input int) int {
+	fmt.Println(m.Title)
+	for i := 0; i < len(m.Rows); i++ {
+		dest := m.Rows[i][0]
+		source := m.Rows[i][1]
+		length := m.Rows[i][2]
+
+		if input >= source && input <= source+length {
+			// fmt.Println(input, input+(dest-source))
+			return input + (dest - source)
+		}
+	}
+	// fmt.Println(input)
+	return input
+}
+
 func compute_loc(input int, mapData_list []MapData) int {
 	// smallest := 99999999999
 	var output int
@@ -116,8 +110,8 @@ func compute_loc(input int, mapData_list []MapData) int {
 }
 
 func main() {
-	// fileName := "example.txt"
-	fileName := "input.txt"
+	fileName := "example.txt"
+	// fileName := "input.txt"
 
 	file, _ := os.Open(fileName)
 	defer file.Close()
@@ -127,9 +121,9 @@ func main() {
 	seedData, mapData_list := parseInput(splitInput)
 	start := time.Now()
 
-	part_b := 99999999999
+	part_b := int(^uint(0) >> 1)
 	seedData = computePairs(seedData)
-	// fmt.Println(a)
+	seedData = []int{82}
 	var output int
 
 	for _, seed := range seedData {
