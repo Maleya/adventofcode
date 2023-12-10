@@ -31,8 +31,9 @@ func (c *camelcards) read_input(input_lines []string) {
 func (c *camelcards) scoreTieBreaks() {
 	no_of_hands := 7
 	card_strength := map[string]int{
-		"A": 13, "K": 12, "Q": 11, "J": 10, "T": 9, "9": 8, "8": 7, "7": 6, "6": 5, "5": 4, "4": 3, "3": 2, "2": 1,
+		"A": 13, "K": 12, "Q": 11, "T": 10, "9": 9, "8": 8, "7": 7, "6": 6, "5": 5, "4": 4, "3": 3, "2": 2, "J": 1,
 	}
+
 	for i := 0; i < no_of_hands; i++ {
 		stacked, ok := c.handTypes[i]
 
@@ -100,7 +101,6 @@ func (c *camelcards) rank_hands_new() {
 				rank_iter++
 
 			}
-
 		}
 	}
 }
@@ -117,35 +117,79 @@ type hand struct {
 func (h *hand) classify_hand() {
 	card_count, highest_duplicate := count_occurances(h.cards)
 	distinct_keys := len(card_count)
+	joker_count := card_count["J"]
 
-	switch {
-	case distinct_keys == 1:
-		h.hand_name = "Five of a kind"
-		h.hand_strength = 6
+	if joker_count > 0 {
+		highest_duplicate_withoutJ := 0
 
-	case distinct_keys == 2:
-		if highest_duplicate == 4 {
-			h.hand_name = "Four of a kind"
-			h.hand_strength = 5
-		} else {
-			h.hand_name = "Full house"
-			h.hand_strength = 4
+		for key, val := range card_count {
+			if key != "J" && val > highest_duplicate_withoutJ {
+				highest_duplicate_withoutJ = val
+			}
 		}
-	case distinct_keys == 3:
-		if highest_duplicate == 3 {
-			h.hand_name = "Three of a kind"
-			h.hand_strength = 3
-		} else {
-			h.hand_name = "Two pair"
-			h.hand_strength = 2
-		}
-	case distinct_keys == 4:
-		h.hand_name = "One pair"
-		h.hand_strength = 1
 
-	case distinct_keys == 5:
-		h.hand_name = "High card"
-		h.hand_strength = 0
+		switch {
+		case distinct_keys == 1:
+			h.hand_name = "Five of a kind"
+			h.hand_strength = 6
+
+		case distinct_keys == 2:
+			h.hand_name = "Five of a kind"
+			h.hand_strength = 6
+
+		case distinct_keys == 3:
+			if joker_count+highest_duplicate_withoutJ == 4 {
+				h.hand_name = "Four of a kind"
+				h.hand_strength = 5
+			} else {
+				h.hand_name = "Full house"
+				h.hand_strength = 4
+			}
+		case distinct_keys == 4:
+			if joker_count+highest_duplicate_withoutJ == 3 {
+				h.hand_name = "Three of a kind"
+				h.hand_strength = 3
+			} else {
+				h.hand_name = "Two pair"
+				h.hand_strength = 2
+			}
+		case distinct_keys == 5:
+			h.hand_name = "One pair"
+			h.hand_strength = 1
+
+			// 5 distinct keys with a joker will never be a highcard.
+		}
+
+	} else {
+		switch {
+		case distinct_keys == 1:
+			h.hand_name = "Five of a kind"
+			h.hand_strength = 6
+
+		case distinct_keys == 2:
+			if highest_duplicate == 4 {
+				h.hand_name = "Four of a kind"
+				h.hand_strength = 5
+			} else {
+				h.hand_name = "Full house"
+				h.hand_strength = 4
+			}
+		case distinct_keys == 3:
+			if highest_duplicate == 3 {
+				h.hand_name = "Three of a kind"
+				h.hand_strength = 3
+			} else {
+				h.hand_name = "Two pair"
+				h.hand_strength = 2
+			}
+		case distinct_keys == 4:
+			h.hand_name = "One pair"
+			h.hand_strength = 1
+
+		case distinct_keys == 5:
+			h.hand_name = "High card"
+			h.hand_strength = 0
+		}
 	}
 
 }
@@ -187,7 +231,7 @@ func main() {
 	camel_game.read_input(splitInput)
 	camel_game.scoreTieBreaks()
 	camel_game.rank_hands_new()
-	part_a := camel_game.total_winnings()
-	fmt.Println("part a", part_a)
+	part_b := camel_game.total_winnings()
+	fmt.Println("part b", part_b)
 
 }
