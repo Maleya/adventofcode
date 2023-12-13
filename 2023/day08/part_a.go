@@ -26,15 +26,19 @@ func (n *node) run(s string) string {
 }
 
 type graph struct {
-	nodes []node
+	nodes        map[string]node
+	instructions string
 }
 
 func (g *graph) addNode(n node) {
-	g.nodes = append(g.nodes, n)
+	g.nodes[n.name] = n
 }
 
 func (g *graph) process_input(input []string) {
-	for _, line := range input {
+	for i, line := range input {
+		if i == 0 {
+			g.instructions = strings.TrimSpace(line)
+		}
 
 		parts := strings.Split(strings.TrimSpace(line), "=")
 
@@ -67,7 +71,9 @@ func main() {
 
 	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 
-	var g graph
+	g := graph{
+		nodes: make(map[string]node),
+	}
 	g.process_input(splitInput)
 	fmt.Println(g)
 }
