@@ -13,7 +13,7 @@ type node struct {
 	right string
 }
 
-func (n *node) run(s string) string {
+func (n *node) getNodeName(s string) string {
 	switch strings.ToLower(s) {
 	case "l":
 		return n.left
@@ -28,6 +28,7 @@ func (n *node) run(s string) string {
 type graph struct {
 	nodes        map[string]node
 	instructions string
+	steps        int
 }
 
 func (g *graph) addNode(n node) {
@@ -58,12 +59,41 @@ func (g *graph) process_input(input []string) {
 	}
 }
 
-func (g *graph) traverse(instructions string) {
+func (g *graph) runInstructions(startNodeName string) string {
+	endNodeName := "ZZZ"
+	var newNodename string
+
+	fmt.Println(startNodeName, endNodeName)
+	n := g.nodes[startNodeName]
+
+	for _, instr := range g.instructions {
+		instr := string(instr)
+		newNodename = n.getNodeName(string(instr))
+		fmt.Println("At", n.name, "going", instr, "to", newNodename)
+		if newNodename == endNodeName {
+			g.steps++
+			fmt.Println("found end node, after steps:", g.steps)
+			return newNodename
+		}
+		n = g.nodes[newNodename]
+		g.steps++
+
+	}
+	return newNodename
+}
+
+func (g *graph) loopInstructions() {
+	g.steps = 0
+	latest_node := "AAA"
+	for latest_node != "ZZZ" {
+		latest_node = g.runInstructions(latest_node)
+	}
 }
 
 func main() {
-	fileName := "example.txt"
-	// fileName := "input.txt"
+	// fileName := "example.txt"
+	// fileName := "example1.txt"
+	fileName := "input.txt"
 
 	file, _ := os.Open(fileName)
 	defer file.Close()
@@ -73,7 +103,10 @@ func main() {
 
 	g := graph{
 		nodes: make(map[string]node),
+		steps: 0,
 	}
 	g.process_input(splitInput)
-	fmt.Println(g)
+	// g.runInstructions()
+	g.loopInstructions()
+	// fmt.Println(g)
 }
