@@ -12,6 +12,9 @@ var input string
 //go:embed example.txt
 var example_input string
 
+//go:embed example2.txt
+var example_input2 string
+
 type node struct {
 	name  string
 	left  string
@@ -38,7 +41,7 @@ type graph struct {
 	instructions string
 	steps        int
 	starterNodes []string
-	end_dist     map[int]int
+	dist_to_Z    map[int]int
 }
 
 func (g *graph) addNode(n node) {
@@ -74,90 +77,47 @@ func (g *graph) process_input(input []string) {
 	}
 }
 
-// func (g *graph) runInstructions_old(startNodeName string) string {
-// 	endNodeName := "ZZZ"
-// 	var newNodename string
+func (g *graph) runtillZ() {
 
-// 	fmt.Println(startNodeName, endNodeName)
-// 	n := g.nodes[startNodeName]
-
-// 	for _, instr := range g.instructions {
-// 		instr := string(instr)
-// 		newNodename = n.getNodeName(string(instr))
-// 		fmt.Println("At", n.name, "going", instr, "to", newNodename)
-// 		if newNodename == endNodeName {
-// 			g.steps++
-// 			fmt.Println("found end node, after steps:", g.steps)
-// 			return newNodename
-// 		}
-// 		n = g.nodes[newNodename]
-// 		g.steps++
-
-// 	}
-// 	return newNodename
-// }
-
-func (g *graph) runInstructions(startNodeNames []string) ([]string, bool) {
-	n_starts := len(g.starterNodes)
-	fmt.Println(n_starts, "starts")
-	fmt.Println(startNodeNames)
-	current_nodes := startNodeNames
-
-	for _, instr := range g.instructions {
-		var newNodes []string
-		instr := string(instr)
+	fmt.Println(len(g.starterNodes))
+	for _, nodename := range g.starterNodes {
 		counter := 0
+		counter_2 := 0
+		i := 0
+		fmt.Println(nodename)
+		for counter_2 < len(g.starterNodes) {
+			idx := i % len(g.instructions)
+			instruction := string(g.instructions[idx])
+			nodename = g.nodes[nodename].getNodeName(instruction)
+			i++
+			counter++
 
-		// apply instruction to current nodes.
-		for i, node_name := range current_nodes {
-			new_name := g.nodes[node_name].getNodeName(instr)
-			// fmt.Println("step:", g.steps, "At", node_name, "going", instr, "to", new_name, "counter:", counter)
-			if strings.HasSuffix(new_name, "Z") {
-				g.end_dist[i] = g.steps
-				counter++
+			if strings.HasSuffix(nodename, "Z") {
+				fmt.Println("reached", nodename, "in:", counter)
+				counter_2++
+				break
 			}
-			newNodes = append(newNodes, new_name)
-			current_nodes = newNodes
-
 		}
-		g.steps++
-		// fmt.Println(g.steps)
-		if counter == n_starts {
-			fmt.Println("found end node", g.steps)
-			return current_nodes, true
-			// break
-		}
-	}
-	return current_nodes, false
-
-}
-
-func (g *graph) loopInstructions() {
-	g.steps = 0
-	latest_node := g.starterNodes
-	ok := false
-	for ok == false {
-		// fmt.Println("looped instructions")
-		latest_node, ok = g.runInstructions(latest_node)
-		fmt.Println(g.end_dist)
 	}
 }
 
 func main() {
 	// load_file := example_input
+	// load_file := example_input2
 	load_file := input
 	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	g := graph{
-		nodes:    make(map[string]node),
-		steps:    0,
-		end_dist: make(map[int]int),
+		nodes:     make(map[string]node),
+		steps:     0,
+		dist_to_Z: make(map[int]int),
 	}
 	g.process_input(splitInput)
 	// fmt.Println(g)
 
 	// g.runInstructions(g.starterNodes)
-	g.loopInstructions()
+	// g.loopInstructions()
+	g.runtillZ()
 }
 
 // lcm of the distance to the first z on each path
