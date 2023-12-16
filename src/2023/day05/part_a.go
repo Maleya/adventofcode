@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -94,7 +95,10 @@ func main() {
 	fileName := "example.txt"
 	// fileName := "input.txt"
 
-	file, _ := os.Open(fileName)
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer file.Close()
 	content, _ := io.ReadAll(file)
 

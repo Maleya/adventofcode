@@ -2,22 +2,24 @@ package file
 
 import (
 	"io"
+	"log"
 	"os"
 	"strings"
 )
 
-func ReadInput(fileName string) (content []string, err error) {
+func ReadInput(fileName string) (content []string) {
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		return content, err
+		log.Fatal(err)
+		// return content, err
 	}
 	defer file.Close()
 	lineContent, err := io.ReadAll(file)
 	if err != nil {
-		return content, err
+		log.Fatal(err)
+		// return content, err
 	}
 	content = strings.Split(strings.TrimSpace(string(lineContent)), "\n")
-	return content, err
-
+	return content
 }

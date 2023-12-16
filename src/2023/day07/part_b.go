@@ -1,13 +1,18 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 )
+
+//go:embed input.txt
+var input string
+
+//go:embed example.txt
+var example_input string
 
 type camelcards struct {
 	strengthToIndex map[int][]int
@@ -217,17 +222,11 @@ func parse_input_line(line string) hand {
 }
 
 func main() {
-	// fileName := "example.txt"
-	// fileName := "example_1.txt"
-	fileName := "input.txt"
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	content, _ := io.ReadAll(file)
 	var camel_game camelcards
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
-
 	camel_game.read_input(splitInput)
 	camel_game.scoreTieBreaks()
 	camel_game.rank_hands_new()
