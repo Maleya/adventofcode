@@ -1,9 +1,8 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -65,14 +64,16 @@ func combine_first_last(s string) int {
 	return combined_digits
 }
 
-func main() {
-	// fileName := "example_a.txt"
-	// fileName := "example_b.txt"
-	fileName := "input.txt"
+//go:embed input.txt
+var input string
 
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	content, _ := io.ReadAll(file)
+//go:embed example.txt
+var example_input string
+
+func main() {
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	// make map of strings
 	replacements_map := map[string]string{
@@ -87,7 +88,6 @@ func main() {
 		"nine":  "9",
 	}
 
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 	var final_sum int
 	for _, line := range splitInput {
 

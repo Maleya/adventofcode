@@ -1,9 +1,8 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"os"
 	"strconv"
 	"strings"
 	"unicode"
@@ -28,21 +27,17 @@ func combine_first_last(s string) int {
 	return combined_digits
 }
 
+//go:embed input.txt
+var input string
+
+//go:embed example.txt
+var example_input string
+
 func main() {
-	fileName := "example_a.txt"
-	// fileName := "input.txt"
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
-	file, err := os.Open(fileName)
-	if err != nil {
-		os.Exit(1)
-	}
-	defer file.Close()
-	content, err := io.ReadAll(file)
-	if err != nil {
-		os.Exit(1)
-	}
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 	var final_sum int
 	for _, line := range splitInput {
 

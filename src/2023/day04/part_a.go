@@ -1,10 +1,9 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -62,16 +61,17 @@ func pointscounter(no_matches int) int {
 
 }
 
+//go:embed input.txt
+var input string
+
+//go:embed example.txt
+var example_input string
+
 func main() {
-	// fileName := "example.txt"
-	fileName := "input.txt"
-
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	content, _ := io.ReadAll(file)
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 	part_a := 0
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 	for _, line := range splitInput {
 		// fmt.Println(line)
 

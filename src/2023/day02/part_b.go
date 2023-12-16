@@ -1,9 +1,8 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 )
 
@@ -16,18 +15,18 @@ func game_possible(results, max_colours map[string]int) bool {
 	return true
 }
 
-func main() {
-	// fileName := "example.txt"
-	// fileName := "example_b.txt"
-	fileName := "input.txt"
+//go:embed input.txt
+var input string
 
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	content, _ := io.ReadAll(file)
+//go:embed example.txt
+var example_input string
+
+func main() {
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	var prod_sum int
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
 	for _, fullgame := range splitInput {
 		var game_id, product_game int
 		cube_max := make(map[string]int)

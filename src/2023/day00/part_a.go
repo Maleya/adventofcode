@@ -13,8 +13,8 @@ var input string
 var example_input string
 
 func main() {
-	load_file := example_input
-	// load_file := input
+	// load_file := example_input
+	load_file := input
 	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	for _, elem := range splitInput {

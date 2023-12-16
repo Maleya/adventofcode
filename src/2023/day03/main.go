@@ -1,9 +1,8 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -93,16 +92,16 @@ func match_numbers_to_symbols(input []string, symbols, numbers map[string][]symb
 	fmt.Println("part_a", sum_part1)
 }
 
+//go:embed input.txt
+var input string
+
+//go:embed example.txt
+var example_input string
+
 func main() {
-	// fileName := "example.txt"
-	// fileName := "example_b.txt"
-	fileName := "input.txt"
-
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	content, _ := io.ReadAll(file)
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 	symbols_loc := find_symbols(splitInput)
 	digits_loc := findDigits(splitInput)
 

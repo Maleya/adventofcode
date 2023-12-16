@@ -1,10 +1,8 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -91,18 +89,16 @@ func range_map(input, dest, source, length int) (int, bool) {
 	}
 }
 
+//go:embed input.txt
+var input string
+
+//go:embed example.txt
+var example_input string
+
 func main() {
-	fileName := "example.txt"
-	// fileName := "input.txt"
-
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	content, _ := io.ReadAll(file)
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 	seedData, mapData_list := parseInput(splitInput)
 	part_a := 99999999999
 

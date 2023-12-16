@@ -1,11 +1,16 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 )
+
+//go:embed input.txt
+var input string
+
+//go:embed example.txt
+var example_input string
 
 type node struct {
 	name  string
@@ -91,15 +96,9 @@ func (g *graph) loopInstructions() {
 }
 
 func main() {
-	// fileName := "example.txt"
-	// fileName := "example1.txt"
-	fileName := "input.txt"
-
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	content, _ := io.ReadAll(file)
-
-	splitInput := strings.Split(strings.TrimSpace(string(content)), "\n")
+	// load_file := example_input
+	load_file := input
+	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	g := graph{
 		nodes: make(map[string]node),
