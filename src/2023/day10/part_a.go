@@ -13,11 +13,20 @@ var input string
 //go:embed example.txt
 var example_input string
 
+//go:embed example1.txt
+var example_input1 string
+
+//go:embed example2.txt
+var example_input2 string
+
 // to be refactored for future use qq
 type maze struct {
-	mazemap  [][]string
-	startLoc coords
-	lastElem coords
+	mazemap         [][]string
+	startLoc        coords
+	lastElem        coords
+	visited         map[coords]bool
+	pipeToDirection map[string][]string
+	DirectionToPipe map[string][]string
 }
 
 // to be refactored for future use qq
@@ -55,45 +64,48 @@ func Isin(s string, inlist []string) bool {
 	return false
 }
 
-// todo: rename!
-// to be refactored for future use qq
 func (m *maze) nextPipeLoc(loc coords) (output []coords) {
-	if !m.inbounds(loc) {
+
+	curr_pipe, ok := m.get(loc)
+	if ok != nil {
 		panic("location out of map bounds")
 	}
-	// directions:
-	up_loc := loc.up()
-	down_loc := loc.down()
-	left_loc := loc.left()
-	right_loc := loc.right()
+	fmt.Println("current pipe:", curr_pipe)
 
-	// requirements:
-	req_up := []string{"F", "7", "|"}
-	req_down := []string{"L", "J", "|"}
-	req_left := []string{"F", "-", "L"}
-	req_right := []string{"-", "7", "J"}
+	viable_directions := m.pipeToDirection[curr_pipe]
 
-	up, ok := m.get(up_loc)
-	if ok == nil && Isin(up, req_up) {
-		fmt.Println("went up:", up, up_loc)
-		output = append(output, up_loc)
-	}
-
-	down, ok := m.get(down_loc)
-	if ok == nil && Isin(down, req_down) {
-		fmt.Println("went down:", down, down_loc)
-		output = append(output, down_loc)
-	}
-	left, ok := m.get(left_loc)
-	if ok == nil && Isin(left, req_left) {
-		fmt.Println("went left:", left, left_loc)
-		output = append(output, left_loc)
-	}
-	right, ok := m.get(right_loc)
-	if ok == nil && Isin(right, req_right) {
-		fmt.Println("went right:", right, right_loc)
-		output = append(output, right_loc)
-
+	for _, dir := range viable_directions {
+		required_pipes := m.DirectionToPipe[dir]
+		switch dir {
+		case "N":
+			next_loc := loc.up()
+			next_pipe, ok := m.get(next_loc)
+			if ok == nil && Isin(next_pipe, required_pipes) {
+				// fmt.Println("went north to:", next_pipe, "at loc:", next_loc)
+				output = append(output, next_loc)
+			}
+		case "E":
+			next_loc := loc.right()
+			next_pipe, ok := m.get(next_loc)
+			if ok == nil && Isin(next_pipe, required_pipes) {
+				// fmt.Println("went east to:", next_pipe, "at loc:", next_loc)
+				output = append(output, next_loc)
+			}
+		case "S":
+			next_loc := loc.down()
+			next_pipe, ok := m.get(next_loc)
+			if ok == nil && Isin(next_pipe, required_pipes) {
+				// fmt.Println("went south to:", next_pipe, "at loc:", next_loc)
+				output = append(output, next_loc)
+			}
+		case "W":
+			next_loc := loc.left()
+			next_pipe, ok := m.get(next_loc)
+			if ok == nil && Isin(next_pipe, required_pipes) {
+				// fmt.Println("went west to:", next_pipe, "at loc:", next_loc)
+				output = append(output, next_loc)
+			}
+		}
 	}
 
 	return output
@@ -141,10 +153,29 @@ func init_maze(input []string) *maze {
 			}
 		}
 	}
+	pipeToDirection := map[string][]string{
+		"|": {"N", "S"},
+		"-": {"E", "W"},
+		"L": {"N", "E"},
+		"J": {"N", "W"},
+		"7": {"S", "W"},
+		"F": {"S", "E"},
+		"S": {"N", "E", "S", "W"},
+	}
+	DirectionToPipe := map[string][]string{
+		"N": {"F", "7", "|"},
+		"E": {"-", "7", "J"},
+		"S": {"L", "J", "|"},
+		"W": {"F", "-", "L"},
+	}
+
 	m := maze{
-		mazemap:  mazemap,
-		startLoc: startingLoc,
-		lastElem: coords{y: dy - 1, x: dx - 1},
+		mazemap:         mazemap,
+		startLoc:        startingLoc,
+		lastElem:        coords{y: dy - 1, x: dx - 1},
+		visited:         make(map[coords]bool),
+		pipeToDirection: pipeToDirection,
+		DirectionToPipe: DirectionToPipe,
 	}
 	return &m
 
@@ -155,37 +186,42 @@ func part_a(splitInput []string) {
 	step_counter := 0
 
 	var queue []coords
-	visited := make(map[coords]bool)
+	m.visited[start_loc] = true
 
-	queue = append(queue, m.nextPipeLoc(start_loc)...)
+	// go only one direction from S by taking first element.
+	queue = append(queue, m.nextPipeLoc(start_loc)[0])
+	fmt.Println("queue start---------------", queue)
 
-	// todo: fix this janky ass queue.
 	for len(queue) > 0 {
-		new_locs := m.nextPipeLoc(queue[0])
+		current_loc := queue[0] // pop
+		queue = queue[1:]       // deque
+		current, _ := m.get(current_loc)
+		if current == "S" {
+			fmt.Println("s reached")
+			break
+		}
 		step_counter++
+		fmt.Println(current_loc, current)
+		m.visited[current_loc] = true
+		// place only unvisted neightbouring spots in the queue:
+		new_locs := m.nextPipeLoc(current_loc)
 		for _, loc := range new_locs {
-			if !visited[loc] {
+			if !m.visited[loc] {
 				queue = append(queue, loc)
-				visited[loc] = true
+				m.visited[loc] = true
 			}
 		}
 		// queue = append(queue, m.nextPipeLoc(queue[0])...) // First element
-		queue = queue[1:] // Dequeue
 	}
 	fmt.Println("final steps", step_counter)
+	fmt.Println("furthest:", (step_counter+1)/2)
 
 }
 
 func main() {
-	load_file := example_input
-	// load_file := input
+	// load_file := example_input
+	load_file := input
+	// load_file := example_input2
 	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 	part_a(splitInput)
-	// m.get(up_loc)
-	// m := init_maze(splitInput)
-	// loc := coords{y: -1, x: 0}
-	// fmt.Println(m.inbounds(loc))
-	// fmt.Println(m.get(loc))
-	// result :=
-	// fmt.Println(m.nextPipeLoc(loc))
 }
