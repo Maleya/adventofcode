@@ -1,5 +1,5 @@
-example.txt
-example.in
+example*.txt
+example*.in
 input.txt
 input.in
 .DS_Store
