@@ -243,6 +243,7 @@ func init_maze(input []string) *maze {
 
 }
 func part_a_b(splitInput []string) {
+	// reader beware, this day was (is) particularly in need of refactoring.
 	m := init_maze(splitInput)
 	start_loc := m.startLoc
 	step_counter := 0
