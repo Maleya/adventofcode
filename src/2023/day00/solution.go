@@ -16,7 +16,7 @@ func partA(input []string) {
 	fmt.Println("part_a:")
 
 }
-func partb(input []string) {
+func partB(input []string) {
 	fmt.Println("part_b:")
 }
 
@@ -29,6 +29,6 @@ func main() {
 		fmt.Println(elem)
 	}
 	partA(splitInput)
-	partb(splitInput)
+	partB(splitInput)
 
 }
