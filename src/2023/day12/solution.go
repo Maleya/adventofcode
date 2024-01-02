@@ -19,8 +19,15 @@ type Row struct {
 	DoneInGroup  int
 }
 
+// make a string representation of Row for a map
 func (r Row) ToString() string {
-	sizesStr := fmt.Sprint(r.SpringString)
+	strSlice := make([]string, len(r.Sizes))
+
+	for i, num := range r.Sizes {
+		strSlice[i] = strconv.Itoa(num)
+	}
+
+	sizesStr := strings.Join(strSlice, ",")
 	return fmt.Sprintf("%s-%s-%d", r.SpringString, sizesStr, r.DoneInGroup)
 }
 
@@ -50,12 +57,45 @@ func parseInputString(input string) Row {
 	}
 }
 
-func countSolutions(r Row) int {
-	// todo: use a cache of type map[string]bool
+func parseInputStringPartB(input string) Row {
+	// ugly copy-paste job to parse for partB. Should be refactored. One day.
+	parts := strings.Split(input, " ")
+
+	leftSide := parts[0]
+	variablesStr := parts[1]
+
+	// Split the variables string on comma and convert to integers
+	var sizes []int
+	for _, vStr := range strings.Split(variablesStr, ",") {
+		variable, err := parseVariable(vStr)
+		if err != nil {
+			// Handle error if conversion fails
+			fmt.Println("Error parsing variable:", err)
+			return Row{}
+		}
+		sizes = append(sizes, variable)
+	}
+
+	// repeat the left side 5 times
+	repeatedSpring := strings.Join(strings.Split(strings.Repeat(leftSide+"?", 5), ""), "")
+	repeatedSpring = repeatedSpring[:len(repeatedSpring)-1]
+
+	// Repeat Sizes 5 times
+	var repeatedSizes []int
+	for i := 0; i < 5; i++ {
+		repeatedSizes = append(repeatedSizes, sizes...)
+	}
+
+	return Row{
+		SpringString: repeatedSpring + ".", //append a "." to find EOL,
+		Sizes:        repeatedSizes,
+		DoneInGroup:  0,
+	}
+}
+
+func countSolutions(r Row, cache map[string]int) int {
 	var solutions int
 	var possible []string
-
-	// fmt.Println(r.SpringString, r.Sizes, r.DoneInGroup)
 
 	// check return condition:
 	if len(r.SpringString) == 0 {
@@ -64,11 +104,9 @@ func countSolutions(r Row) int {
 			return 1
 		}
 		return 0
-
 	}
-	char := string(r.SpringString[0])
 
-	if char == "?" {
+	if char := string(r.SpringString[0]); char == "?" {
 		possible = []string{"#", "."}
 	} else {
 		possible = []string{char}
@@ -77,37 +115,57 @@ func countSolutions(r Row) int {
 	for _, spring := range possible {
 		if spring == "#" {
 			// extend current group
-			// fmt.Println("-->", r.SpringString)
-			solutions += countSolutions(Row{
+			NextRow := Row{
 				SpringString: r.SpringString[1:],
 				Sizes:        r.Sizes,
 				DoneInGroup:  r.DoneInGroup + 1,
-			})
+			}
+
+			// load from cache or update if not in cache:
+			if cached_sol, ok := cache[NextRow.ToString()]; ok {
+				solutions += cached_sol
+			} else {
+				sol := countSolutions(NextRow, cache)
+				cache[NextRow.ToString()] = sol
+				solutions += sol
+			}
 		} else {
 			if r.DoneInGroup > 0 {
 				// close a group if its saturated:
 				if len(r.Sizes) > 0 && r.DoneInGroup == r.Sizes[0] {
-					// fmt.Println("-->", r.SpringString)
 
-					solutions += countSolutions(Row{
+					NextRow := Row{
 						SpringString: r.SpringString[1:],
 						Sizes:        r.Sizes[1:],
 						DoneInGroup:  0,
-					})
+					}
+					// load from cache or update if not in cache:
+					if cached_sol, ok := cache[NextRow.ToString()]; ok {
+						solutions += cached_sol
+					} else {
+						sol := countSolutions(NextRow, cache)
+						cache[NextRow.ToString()] = sol
+						solutions += sol
+					}
 				}
 
 			} else {
 				// not in a group, move on to next symbol
-				// fmt.Println("-->", r.SpringString)
-				solutions += countSolutions(Row{
+				NextRow := Row{
 					SpringString: r.SpringString[1:],
 					Sizes:        r.Sizes,
 					DoneInGroup:  0,
-				})
-
+				}
+				// load from cache or update if not in cache:
+				if cached_sol, ok := cache[NextRow.ToString()]; ok {
+					solutions += cached_sol
+				} else {
+					sol := countSolutions(NextRow, cache)
+					cache[NextRow.ToString()] = sol
+					solutions += sol
+				}
 			}
 		}
-
 	}
 	return solutions
 }
@@ -120,34 +178,37 @@ func parseVariable(vStr string) (int, error) {
 	}
 	return variable, nil
 }
+
 func partA(input []string) {
 	sum := 0
-	cache := make(map[string]bool)
+	cache := make(map[string]int)
 
 	for _, line := range input {
 
 		r := parseInputString(line)
-		fmt.Println("initial input", r)
-		fmt.Println("adapted input", r.ToString())
-		sol := countSolutions(r)
-		fmt.Println("no of arrangements:", sol)
+		sol := countSolutions(r, cache)
 		sum += sol
 	}
-	fmt.Println("sum:", sum)
-
+	fmt.Println("sum part a:", sum)
 }
+
 func partB(input []string) {
-	fmt.Println("part_b:")
+	sum := 0
+	cache := make(map[string]int)
+
+	for _, line := range input {
+		r := parseInputStringPartB(line)
+		sol := countSolutions(r, cache)
+		sum += sol
+	}
+	fmt.Println("sum part b:", sum)
 }
 
 func main() {
-	load_file := example_input
-	// load_file := input
+	// load_file := example_input
+	load_file := input
 	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	partA(splitInput)
-	// partB(splitInput)
-
+	partB(splitInput)
 }
-
-// plan:
