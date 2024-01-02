@@ -13,13 +13,18 @@ var input string
 //go:embed example.txt
 var example_input string
 
-type row struct {
+type Row struct {
 	SpringString string
 	Sizes        []int
-	GroupCount   int
+	DoneInGroup  int
 }
 
-func parseInputString(input string) row {
+func (r Row) ToString() string {
+	sizesStr := fmt.Sprint(r.SpringString)
+	return fmt.Sprintf("%s-%s-%d", r.SpringString, sizesStr, r.DoneInGroup)
+}
+
+func parseInputString(input string) Row {
 	parts := strings.Split(input, " ")
 
 	leftSide := parts[0]
@@ -32,29 +37,29 @@ func parseInputString(input string) row {
 		if err != nil {
 			// Handle error if conversion fails
 			fmt.Println("Error parsing variable:", err)
-			return row{}
+			return Row{}
 		}
 		sizes = append(sizes, variable)
 	}
 
 	// Create and return the struct
-	return row{
+	return Row{
 		SpringString: leftSide + ".", //append a "." to find EOL
 		Sizes:        sizes,
-		GroupCount:   0,
+		DoneInGroup:  0,
 	}
 }
 
-func countSolutions(r row, ingroup int) int {
+func countSolutions(r Row) int {
 	// todo: use a cache of type map[string]bool
 	var solutions int
 	var possible []string
 
-	// fmt.Println(r.SpringString, r.Sizes, ingroup)
+	// fmt.Println(r.SpringString, r.Sizes, r.DoneInGroup)
 
 	// check return condition:
 	if len(r.SpringString) == 0 {
-		if len(r.Sizes) == 0 && ingroup == 0 {
+		if len(r.Sizes) == 0 && r.DoneInGroup == 0 {
 			// we correctly handled and closed all groups:
 			return 1
 		}
@@ -73,29 +78,32 @@ func countSolutions(r row, ingroup int) int {
 		if spring == "#" {
 			// extend current group
 			// fmt.Println("-->", r.SpringString)
-			solutions += countSolutions(row{
+			solutions += countSolutions(Row{
 				SpringString: r.SpringString[1:],
 				Sizes:        r.Sizes,
-			}, ingroup+1)
+				DoneInGroup:  r.DoneInGroup + 1,
+			})
 		} else {
-			if ingroup > 0 {
+			if r.DoneInGroup > 0 {
 				// close a group if its saturated:
-				if len(r.Sizes) > 0 && ingroup == r.Sizes[0] {
+				if len(r.Sizes) > 0 && r.DoneInGroup == r.Sizes[0] {
 					// fmt.Println("-->", r.SpringString)
 
-					solutions += countSolutions(row{
+					solutions += countSolutions(Row{
 						SpringString: r.SpringString[1:],
 						Sizes:        r.Sizes[1:],
-					}, 0)
+						DoneInGroup:  0,
+					})
 				}
 
 			} else {
 				// not in a group, move on to next symbol
 				// fmt.Println("-->", r.SpringString)
-				solutions += countSolutions(row{
+				solutions += countSolutions(Row{
 					SpringString: r.SpringString[1:],
 					Sizes:        r.Sizes,
-				}, 0)
+					DoneInGroup:  0,
+				})
 
 			}
 		}
@@ -114,11 +122,15 @@ func parseVariable(vStr string) (int, error) {
 }
 func partA(input []string) {
 	sum := 0
+	cache := make(map[string]bool)
+
 	for _, line := range input {
-		result := parseInputString(line)
-		fmt.Println("initial input", result)
-		sol := countSolutions(result, 0)
-		fmt.Println("no of solutions:", sol)
+
+		r := parseInputString(line)
+		fmt.Println("initial input", r)
+		fmt.Println("adapted input", r.ToString())
+		sol := countSolutions(r)
+		fmt.Println("no of arrangements:", sol)
 		sum += sol
 	}
 	fmt.Println("sum:", sum)
