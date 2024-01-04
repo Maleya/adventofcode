@@ -50,7 +50,7 @@ func (p Pattern) findvertical() int {
 	var potentialAxes []int
 	rows := len(p.Pattern)
 	cols := len(p.Pattern[0])
-	fmt.Printf("rows: %d, cols: %d\n", rows, cols)
+	// fmt.Printf("rows: %d, cols: %d\n", rows, cols)
 	// find compare the first two columns:
 	for ax := 1; ax < len(p.Pattern[0]); ax++ {
 		var counter int
@@ -72,20 +72,23 @@ func (p Pattern) findvertical() int {
 	// and you dont catch if you dont find anything initially.
 	// its on the edge.. meaning the bottom part of the code cant be used and is not handled.
 	// Expand the search outwards
-	fmt.Println("mirror axes to check:", potentialAxes)
+	// fmt.Println("mirror axes to check:", potentialAxes)
 	for _, ax := range potentialAxes {
-		fmt.Println("checking mirror axis", ax)
+		// fmt.Println("checking mirror axis", ax)
 
 		maxdist := min(ax-1, cols-ax-1) //! broken for ax=1
+		if maxdist == 0 {
+			return ax
+		}
 		//* catch special case of no expansion needed.
 
 		var counter int
 		for i := 1; i <= maxdist; i++ {
-			fmt.Println("expanding search to", ax-i-1, ax+i)
+			// fmt.Println("expanding search to", ax-i-1, ax+i)
 			for j := 0; j < rows; j++ {
 				if p.Pattern[j][ax-i-1] == p.Pattern[j][ax+i] {
 					counter++
-					fmt.Println("match on row", j, p.Pattern[j][ax-i-1], p.Pattern[j][ax+i])
+					// fmt.Println("match on row", j, p.Pattern[j][ax-i-1], p.Pattern[j][ax+i])
 				}
 			}
 			// fmt.Println("counter", counter)
@@ -142,6 +145,10 @@ func partA(input []string) {
 	for i, pattern := range c.Patterns {
 		vert := pattern.findvertical()
 		hort := pattern.findhorizontal()
+		if vert == 0 && hort == 0 {
+			fmt.Println("no axis found for pattern!!!!!", i)
+			break
+		}
 		fmt.Printf("for pattern %d found %d horizontal, %d vertical \n", i, hort, vert)
 		vertical += vert
 		horizontal += hort * 100
@@ -155,8 +162,8 @@ func partB(input []string) {
 
 func main() {
 	// load_file := example_input
-	load_file := example_input1
-	// load_file := input
+	// load_file := example_input1
+	load_file := input
 
 	splitInput := strings.Split(strings.TrimSpace(load_file), "\n")
 
