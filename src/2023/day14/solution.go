@@ -23,10 +23,13 @@ func (r rocks) print() {
 		fmt.Println(row)
 	}
 }
-func (r rocks) countRocks() {
-	// number of round stones per group
+func (r *rocks) countRocks() {
 	ncols := len(r.Positions[0])
 	nrows := len(r.Positions)
+
+	// reset the existing:
+	r.roundRocksCount = make(map[int][]int)
+	r.squareRocksLoc = make(map[int][]int)
 
 	for j := 0; j < ncols; j++ {
 		count := 0
@@ -48,67 +51,74 @@ func (r rocks) countRocks() {
 		}
 	}
 }
+func (r *rocks) cycle(n int) {
+	for i := 0; i < 4*n; i++ {
+		r.tiltNorth()
+		r.rotatemap()
+	}
+}
 
 func (r rocks) calculateWeight() int {
-	// each square rock is at: len(r.Positions)-squarePos
-	// subsequent round rocks are incremented till another square is reached.
-	sum := 0
+	points := 0
 	nrows := len(r.Positions)
-	// for each element in round, if not 0, get a stone to shift it by index.
+	for i, row := range r.Positions {
+		for j := range row {
+			if r.Positions[i][j] == "O" {
+				points += nrows - i
+			}
+		}
+	}
+	return points
+}
 
+func (r *rocks) tiltNorth() {
+	newPos := make([][]string, len(r.Positions))
+
+	// make a new map and copy over the squares rocks
+	for i, row := range r.Positions {
+		newPos[i] = make([]string, len(row))
+		for j, char := range row {
+			if string(char) == "#" {
+				newPos[i][j] = string(char)
+			} else {
+				newPos[i][j] = "."
+			}
+		}
+	}
+	r.countRocks()
 	for col := 0; col < len(r.roundRocksCount); col++ {
-		// fmt.Println("COLUMN:", col)
-		// fmt.Println("has round:", r.roundRocksCount[col])
-		// fmt.Println("has square:", r.squareRocksLoc[col])
 		incrementer := 0
 
 		for nround, round := range r.roundRocksCount[col] {
-			// fmt.Println("round =", round)
 			if round == 0 {
-				// no round stones in group, move on.
 				if nround != 0 {
 					incrementer++
 				}
 				continue
 			}
-			// fmt.Println(r.squareRocksLoc[col], "at index", incrementer)
 
 			if nround == 0 {
-				// the first group
-				startidx := nrows
-				for s := startidx; s > nrows-round; s-- {
-					sum += s
-					// fmt.Println(s)
+				for s := 0; s < round; s++ {
+					newPos[s][col] = "O"
 				}
 				continue
 			}
-
 			// if square stones exist in col
 			if len(r.squareRocksLoc[col]) > 0 {
-				// fmt.Println("incrementer", incrementer)
 				squareLoc := r.squareRocksLoc[col][incrementer]
-				// fmt.Println("sq loc", squareLoc)
-				startidx := nrows - squareLoc - 1
-				// incrementer++
-				// fmt.Println("loop goes from", startidx, "to", nrows-round)
-				// first group starts from the top:
-				for s := startidx; s > startidx-round; s-- {
-					// fmt.Println(s)
-					sum += s
-
+				startidx := squareLoc + 1
+				// fmt.Println("next loop:", startidx, startidx+round)
+				for s := startidx; s < startidx+round; s++ {
+					newPos[s][col] = "O"
 				}
 				incrementer++
 			}
-
-			// fmt.Println("we in here", startidx, nrows-round)
-
 		}
 	}
-	return sum
-	// fmt.Println("sum:", sum)
+	r.Positions = newPos
 }
 
-func (r rocks) rotatemap() rocks {
+func (r *rocks) rotatemap() {
 	rows := len(r.Positions)
 	cols := len(r.Positions[0])
 
@@ -117,7 +127,6 @@ func (r rocks) rotatemap() rocks {
 	for i := range rotated {
 		rotated[i] = make([]string, rows)
 	}
-
 	// Populate the rotated r.Positions
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -125,7 +134,7 @@ func (r rocks) rotatemap() rocks {
 		}
 	}
 
-	return rocks{Positions: rotated}
+	r.Positions = rotated
 }
 
 func parseInput(input []string) rocks {
@@ -145,8 +154,7 @@ func parseInput(input []string) rocks {
 
 func partA(input []string) {
 	rocks := parseInput(input)
-	rocks.print()
-	rocks.countRocks()
+	rocks.tiltNorth()
 	ans := rocks.calculateWeight()
 	fmt.Println("part_a:", ans)
 
@@ -154,21 +162,16 @@ func partA(input []string) {
 
 func partB(input []string) {
 	rocks := parseInput(input)
-	rocks.print()
-	rocks.countRocks()
-	// ans := rocks.calculateWeight()
-
-	// fmt.Println("part_b:")
+	rocks.cycle(1000)
+	ans := rocks.calculateWeight()
+	fmt.Println("part_b:", ans)
 }
 
 func main() {
-	load_file := example_input
-	// load_file := input
+	// load_file := example_input
+	load_file := input
 	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
-	// for _, elem := range splitInput {
-	// 	fmt.Println(elem)
-	// }
 	partA(splitInput)
 	partB(splitInput)
 
