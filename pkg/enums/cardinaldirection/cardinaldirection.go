@@ -1,4 +1,4 @@
-package direction
+package cardinaldirection
 
 // enum Direction:
 type Direction int

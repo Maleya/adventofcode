@@ -1,4 +1,4 @@
-package direction
+package cardinaldirection
 
 import (
 	"strconv"
