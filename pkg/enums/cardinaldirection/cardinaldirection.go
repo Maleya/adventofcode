@@ -1,6 +1,5 @@
 package cardinaldirection
 
-// enum Direction:
 type Direction int
 
 const (
