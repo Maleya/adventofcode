@@ -1,7 +1,7 @@
 package main
 
 import (
-	dirr "adventofcode/pkg/enums/direction"
+	direction "adventofcode/pkg/enums/cardinaldirection"
 	_ "embed"
 	"fmt"
 	"math"
@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-// priority queue
 // L2 distance to goal early stopping
 // min full run distance early stopping.
 
@@ -23,31 +22,17 @@ var example_input string
 type crucible struct {
 	y, x           int
 	heatloss       int
-	lastthreemoves []dirr.Direction
+	lastthreemoves []direction.Direction
 }
 
 func (c crucible) String() string {
-	return fmt.Sprintf("location (%v, %v) heatloss %v history %v", c.y, c.x, c.heatloss, c.lastthreemoves)
+	return fmt.Sprintf("location (%v, %v) heatloss %v, history %v", c.y, c.x, c.heatloss, c.lastthreemoves)
 }
 
-func (c *crucible) SpawnNewCrucibleInDirection(dir dirr.Direction, g Grid) crucible {
-	var y, x int
-	var newDirection []dirr.Direction
+func (c *crucible) SpawnNewCrucibleInDirection(dir direction.Direction, g Grid) crucible {
+	var newDirection []direction.Direction
 
-	switch dir {
-	case dirr.North:
-		y = c.y - 1
-		x = c.x
-	case dirr.East:
-		x = c.x + 1
-		y = c.y
-	case dirr.South:
-		y = c.y + 1
-		x = c.x
-	case dirr.West:
-		x = c.x - 1
-		y = c.y
-	}
+	y, x := g.displaceByDirection(c.y, c.x, dir)
 	if !g.isonGrid(y, x) {
 		panic("not on grid")
 	}
@@ -67,13 +52,13 @@ func (c *crucible) SpawnNewCrucibleInDirection(dir dirr.Direction, g Grid) cruci
 
 }
 
-func (c *crucible) FindLegalDirections(g Grid) []dirr.Direction {
-	var legalDirections []dirr.Direction
-	options := []dirr.Direction{dirr.North, dirr.East, dirr.South, dirr.West}
+func (c *crucible) FindLegalDirections(g Grid) []direction.Direction {
+	var legalDirections []direction.Direction
+	options := []direction.Direction{direction.North, direction.East, direction.South, direction.West}
 
 	for _, dir := range options {
 		// dont move off grid
-		if !g.DirectionOnGrid(c.y, c.x, dir) {
+		if !g.directionOnGrid(c.y, c.x, dir) {
 			continue
 		}
 		// no more than 3 in a row
@@ -82,7 +67,6 @@ func (c *crucible) FindLegalDirections(g Grid) []dirr.Direction {
 				continue
 			}
 		}
-
 		// dont move backwards
 		if len(c.lastthreemoves) > 0 {
 			lastmove := c.lastthreemoves[len(c.lastthreemoves)-1]
@@ -106,25 +90,29 @@ func (g Grid) isonGrid(y int, x int) bool {
 	return y >= 0 && y < len(g.grid) && x >= 0 && x < len(g.grid[0])
 }
 
-func (g Grid) DirectionOnGrid(y int, x int, dir dirr.Direction) bool {
+func (g Grid) displaceByDirection(y int, x int, dir direction.Direction) (int, int) {
 	var y_new, x_new int
 
 	switch dir {
-	case dirr.North:
+	case direction.North:
 		y_new = y - 1
 		x_new = x
-	case dirr.East:
+	case direction.East:
 		x_new = x + 1
 		y_new = y
-	case dirr.South:
+	case direction.South:
 		y_new = y + 1
 		x_new = x
-	case dirr.West:
+	case direction.West:
 		x_new = x - 1
 		y_new = y
 	}
-	return g.isonGrid(y_new, x_new)
+	return y_new, x_new
+}
 
+func (g Grid) directionOnGrid(y int, x int, dir direction.Direction) bool {
+	y_new, x_new := g.displaceByDirection(y, x, dir)
+	return g.isonGrid(y_new, x_new)
 }
 
 func (g Grid) String() string {
@@ -155,44 +143,43 @@ func parseInput(input []string) Grid {
 }
 
 func partA(input []string) {
-	g := parseInput(input)
-	fmt.Println(g)
+	grid := parseInput(input)
+	fmt.Println(grid)
 	leastHeatloss := math.MaxInt64
 	cache := make(map[string]int)
 
-	c := crucible{y: 0, x: 0, heatloss: 0, lastthreemoves: []dirr.Direction{}}
-	pq := []crucible{c}
+	cru := crucible{y: 0, x: 0, heatloss: 0, lastthreemoves: []direction.Direction{}}
+	pq := []crucible{cru}
 
 	for len(pq) > 0 {
-		c := pq[0]
-		// fmt.Println(c)
+		cru := pq[0]
 		pq = pq[1:]
 
-		if c.heatloss > leastHeatloss {
+		if cru.heatloss > leastHeatloss {
 			continue
 		}
-		if g.inGoal(c.y, c.x) {
-			if c.heatloss < leastHeatloss {
-				fmt.Println("GOAL", c)
-				// fmt.Println("allmoves", c.allmoves) // rewrite
-				leastHeatloss = c.heatloss
+		// implement manhattan distance check
+		if grid.inGoal(cru.y, cru.x) {
+			if cru.heatloss < leastHeatloss {
+				fmt.Println("GOAL", cru)
+				leastHeatloss = cru.heatloss
 			}
 			continue
 		}
-		// early stopping if you are suboptimal
 
-		enc := fmt.Sprintf("(%v, %v),%v", c.y, c.x, c.lastthreemoves)
+		// early stopping if you are suboptimal
+		enc := fmt.Sprintf("(%v, %v),%v", cru.y, cru.x, cru.lastthreemoves)
 		if _, ok := cache[enc]; ok {
 			continue
 		} else {
-			cache[enc] = c.heatloss
+			cache[enc] = cru.heatloss
 		}
 
 		// make sure we want to spawn more?
-		newDirecitons := c.FindLegalDirections(g)
+		newDirecitons := cru.FindLegalDirections(grid)
 		if len(newDirecitons) > 0 {
 			for _, dir := range newDirecitons {
-				NewCrucible := c.SpawnNewCrucibleInDirection(dir, g)
+				NewCrucible := cru.SpawnNewCrucibleInDirection(dir, grid)
 				pq = append(pq, NewCrucible)
 			}
 		}
@@ -213,14 +200,5 @@ func main() {
 
 	partA(splitInput)
 	partB(splitInput)
-	// a := West
-	// fmt.Println(a, a.Add(-3))
-	// a = Direction.opposite(1)
-
-	//todo:
-	// - track all moves correctly
-	// track last 10 moves
-	// make ultracurible struct
-	// remove "all moves"
 
 }
