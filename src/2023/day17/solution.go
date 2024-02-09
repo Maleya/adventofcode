@@ -1,6 +1,7 @@
 package main
 
 import (
+	dirr "adventofcode/pkg/enums/direction"
 	_ "embed"
 	"fmt"
 	"math"
@@ -12,8 +13,6 @@ import (
 // priority queue
 // L2 distance to goal early stopping
 // min full run distance early stopping.
-// track states from grid
-// from a spot, findlegaldirections() and then spawn children
 
 //go:embed input.txt
 var input string
@@ -21,46 +20,31 @@ var input string
 //go:embed example.txt
 var example_input string
 
-// enum Direction:
-type Direction int
-
-const (
-	North Direction = iota
-	East
-	South
-	West
-)
-
-func (d Direction) String() string {
-	return [...]string{"North", "East", "South", "West"}[d]
-}
-
 type crucible struct {
 	y, x           int
 	heatloss       int
-	lastthreemoves []Direction
-	allmoves       []Direction
+	lastthreemoves []dirr.Direction
 }
 
 func (c crucible) String() string {
 	return fmt.Sprintf("location (%v, %v) heatloss %v history %v", c.y, c.x, c.heatloss, c.lastthreemoves)
 }
 
-func (c *crucible) SpawnNewCrucibleInDirection(dir Direction, g Grid) crucible {
+func (c *crucible) SpawnNewCrucibleInDirection(dir dirr.Direction, g Grid) crucible {
 	var y, x int
-	var newDirection, allmoveshist []Direction
+	var newDirection []dirr.Direction
 
 	switch dir {
-	case North:
+	case dirr.North:
 		y = c.y - 1
 		x = c.x
-	case East:
+	case dirr.East:
 		x = c.x + 1
 		y = c.y
-	case South:
+	case dirr.South:
 		y = c.y + 1
 		x = c.x
-	case West:
+	case dirr.West:
 		x = c.x - 1
 		y = c.y
 	}
@@ -74,23 +58,18 @@ func (c *crucible) SpawnNewCrucibleInDirection(dir Direction, g Grid) crucible {
 		newDirection = newDirection[1:]
 	}
 
-	// temp:
-	// allmoveshist = append(allmoveshist, c.lastthreemoves...)
-	allmoveshist = append(allmoveshist, dir)
-
 	return crucible{
 		y:              y,
 		x:              x,
 		heatloss:       c.heatloss + g.grid[y][x],
 		lastthreemoves: newDirection,
-		allmoves:       allmoveshist,
 	}
 
 }
 
-func (c *crucible) FindLegalDirections(g Grid) []Direction {
-	var legalDirections []Direction
-	options := []Direction{North, East, South, West}
+func (c *crucible) FindLegalDirections(g Grid) []dirr.Direction {
+	var legalDirections []dirr.Direction
+	options := []dirr.Direction{dirr.North, dirr.East, dirr.South, dirr.West}
 
 	for _, dir := range options {
 		// dont move off grid
@@ -107,16 +86,7 @@ func (c *crucible) FindLegalDirections(g Grid) []Direction {
 		// dont move backwards
 		if len(c.lastthreemoves) > 0 {
 			lastmove := c.lastthreemoves[len(c.lastthreemoves)-1]
-			if lastmove == North && dir == South {
-				continue
-			}
-			if lastmove == East && dir == West {
-				continue
-			}
-			if lastmove == South && dir == North {
-				continue
-			}
-			if lastmove == West && dir == East {
+			if lastmove.Opposite() == dir {
 				continue
 			}
 		}
@@ -136,20 +106,20 @@ func (g Grid) isonGrid(y int, x int) bool {
 	return y >= 0 && y < len(g.grid) && x >= 0 && x < len(g.grid[0])
 }
 
-func (g Grid) DirectionOnGrid(y int, x int, dir Direction) bool {
+func (g Grid) DirectionOnGrid(y int, x int, dir dirr.Direction) bool {
 	var y_new, x_new int
 
 	switch dir {
-	case North:
+	case dirr.North:
 		y_new = y - 1
 		x_new = x
-	case East:
+	case dirr.East:
 		x_new = x + 1
 		y_new = y
-	case South:
+	case dirr.South:
 		y_new = y + 1
 		x_new = x
-	case West:
+	case dirr.West:
 		x_new = x - 1
 		y_new = y
 	}
@@ -190,7 +160,7 @@ func partA(input []string) {
 	leastHeatloss := math.MaxInt64
 	cache := make(map[string]int)
 
-	c := crucible{y: 0, x: 0, heatloss: 0, lastthreemoves: []Direction{}}
+	c := crucible{y: 0, x: 0, heatloss: 0, lastthreemoves: []dirr.Direction{}}
 	pq := []crucible{c}
 
 	for len(pq) > 0 {
@@ -204,7 +174,7 @@ func partA(input []string) {
 		if g.inGoal(c.y, c.x) {
 			if c.heatloss < leastHeatloss {
 				fmt.Println("GOAL", c)
-				fmt.Println("allmoves", c.allmoves) // rewrite
+				// fmt.Println("allmoves", c.allmoves) // rewrite
 				leastHeatloss = c.heatloss
 			}
 			continue
@@ -231,7 +201,6 @@ func partA(input []string) {
 		})
 	}
 
-
 }
 func partB(input []string) {
 	fmt.Println("part_b:")
@@ -244,6 +213,9 @@ func main() {
 
 	partA(splitInput)
 	partB(splitInput)
+	// a := West
+	// fmt.Println(a, a.Add(-3))
+	// a = Direction.opposite(1)
 
 	//todo:
 	// - track all moves correctly
