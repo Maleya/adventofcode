@@ -3,14 +3,16 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"math"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 // priority queue
-// L2 distance early stopping
+// L2 distance to goal early stopping
+// min full run distance early stopping.
 // track states from grid
-
 // from a spot, findlegaldirections() and then spawn children
 
 //go:embed input.txt
@@ -37,6 +39,7 @@ type crucible struct {
 	y, x           int
 	heatloss       int
 	lastthreemoves []Direction
+	allmoves       []Direction
 }
 
 func (c crucible) String() string {
@@ -45,7 +48,7 @@ func (c crucible) String() string {
 
 func (c *crucible) SpawnNewCrucibleInDirection(dir Direction, g Grid) crucible {
 	var y, x int
-	var newDirection []Direction
+	var newDirection, allmoveshist []Direction
 
 	switch dir {
 	case North:
@@ -71,37 +74,53 @@ func (c *crucible) SpawnNewCrucibleInDirection(dir Direction, g Grid) crucible {
 		newDirection = newDirection[1:]
 	}
 
+	// temp:
+	// allmoveshist = append(allmoveshist, c.lastthreemoves...)
+	allmoveshist = append(allmoveshist, dir)
+
 	return crucible{
 		y:              y,
 		x:              x,
 		heatloss:       c.heatloss + g.grid[y][x],
 		lastthreemoves: newDirection,
+		allmoves:       allmoveshist,
 	}
 
 }
 
 func (c *crucible) FindLegalDirections(g Grid) []Direction {
-	// no more than 3 in a row
-	// not on the edge
-	// not in the cache (do this elsewhere)
-	// l2 distance early stopping. (do this elsewhere?)
 	var legalDirections []Direction
 	options := []Direction{North, East, South, West}
 
 	for _, dir := range options {
-		// fmt.Println("reviewing direction", dir)
-
+		// dont move off grid
 		if !g.DirectionOnGrid(c.y, c.x, dir) {
 			continue
 		}
-
+		// no more than 3 in a row
 		if len(c.lastthreemoves) == 3 {
 			if c.lastthreemoves[0] == dir && c.lastthreemoves[1] == dir && c.lastthreemoves[2] == dir {
 				continue
 			}
 		}
 
-		// fmt.Println("direction", dir)
+		// dont move backwards
+		if len(c.lastthreemoves) > 0 {
+			lastmove := c.lastthreemoves[len(c.lastthreemoves)-1]
+			if lastmove == North && dir == South {
+				continue
+			}
+			if lastmove == East && dir == West {
+				continue
+			}
+			if lastmove == South && dir == North {
+				continue
+			}
+			if lastmove == West && dir == East {
+				continue
+			}
+		}
+
 		legalDirections = append(legalDirections, dir)
 	}
 	return legalDirections
@@ -168,28 +187,50 @@ func parseInput(input []string) Grid {
 func partA(input []string) {
 	g := parseInput(input)
 	fmt.Println(g)
+	leastHeatloss := math.MaxInt64
+	cache := make(map[string]int)
 
 	c := crucible{y: 0, x: 0, heatloss: 0, lastthreemoves: []Direction{}}
+	pq := []crucible{c}
 
-	fmt.Println(c)
-	// c.FindLegalDirections(g)
-	c1 := c.SpawnNewCrucibleInDirection(East, g)
-	fmt.Println(c1)
-	fmt.Println(c1.FindLegalDirections(g))
-	c2 := c1.SpawnNewCrucibleInDirection(East, g)
-	fmt.Println(c2)
-	fmt.Println(c2.FindLegalDirections(g))
-	c3 := c2.SpawnNewCrucibleInDirection(East, g)
-	fmt.Println(c3)
-	fmt.Println(c3.FindLegalDirections(g))
-	c4 := c3.SpawnNewCrucibleInDirection(South, g)
-	fmt.Println(c4)
+	for len(pq) > 0 {
+		c := pq[0]
+		// fmt.Println(c)
+		pq = pq[1:]
 
-	// pop from ordered queue
-	// check if in goal..
-	// check not in cache
-	// add in cache
-	// spawn children, add to queue
+		if c.heatloss > leastHeatloss {
+			continue
+		}
+		if g.inGoal(c.y, c.x) {
+			if c.heatloss < leastHeatloss {
+				fmt.Println("GOAL", c)
+				fmt.Println("allmoves", c.allmoves) // rewrite
+				leastHeatloss = c.heatloss
+			}
+			continue
+		}
+		// early stopping if you are suboptimal
+
+		enc := fmt.Sprintf("(%v, %v),%v", c.y, c.x, c.lastthreemoves)
+		if _, ok := cache[enc]; ok {
+			continue
+		} else {
+			cache[enc] = c.heatloss
+		}
+
+		// make sure we want to spawn more?
+		newDirecitons := c.FindLegalDirections(g)
+		if len(newDirecitons) > 0 {
+			for _, dir := range newDirecitons {
+				NewCrucible := c.SpawnNewCrucibleInDirection(dir, g)
+				pq = append(pq, NewCrucible)
+			}
+		}
+		sort.SliceStable(pq, func(i, j int) bool {
+			return pq[i].heatloss < pq[j].heatloss
+		})
+	}
+
 
 }
 func partB(input []string) {
@@ -203,7 +244,11 @@ func main() {
 
 	partA(splitInput)
 	partB(splitInput)
-	// a := compass.Direction
-	// a := compass.North
+
+	//todo:
+	// - track all moves correctly
+	// track last 10 moves
+	// make ultracurible struct
+	// remove "all moves"
 
 }
