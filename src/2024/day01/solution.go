@@ -54,11 +54,8 @@ func partA(input []string) {
 	sort.Ints(leftList)
 	sort.Ints(rightList)
 
-	fmt.Println(leftList, rightList)
-
 	for i := 0; i < len(leftList); i++ {
 		sum += distance(leftList[i], rightList[i])
-		fmt.Println(distance(leftList[i], rightList[i]))
 	}
 
 	fmt.Println("part_a:", sum)
@@ -77,16 +74,22 @@ func countOccurences(input int, array []int) int {
 }
 
 func partB(input []string) {
+	var answer int
 	cache := make(map[int]int)
 	leftList, rightList := parseInputPartA(input)
 
 	for _, elem := range leftList {
-		// check if elem in cache
-
-		
-
-		fmt.Println("part_b:")
+		if _, exists := cache[elem]; exists {
+			// Key exists in cache
+			// fmt.Println("Key exists:", elem, cache[elem])
+		} else {
+			// Key does not exist in cache
+			cache[elem] = countOccurences(elem, rightList)
+		}
+		answer += elem * cache[elem]
 	}
+
+	fmt.Println("part_b:", answer)
 }
 
 func main() {
