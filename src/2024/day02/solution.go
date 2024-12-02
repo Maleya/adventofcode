@@ -19,6 +19,13 @@ type report struct {
 	errors int
 }
 
+func newReport() *report {
+	return &report{
+		levels: []int{},
+		errors: 0,
+	}
+}
+
 func (r *report) strictlyIncreasingOrDecreasing() bool {
 	var increase_counter, decrease_counter int
 
@@ -30,11 +37,9 @@ func (r *report) strictlyIncreasingOrDecreasing() bool {
 			decrease_counter++
 		}
 	}
-	if increase_counter == len(r.levels)-1 || decrease_counter == len(r.levels)-1 {
-		return true
-	}
-	return false
-
+	max_counter := max(increase_counter, decrease_counter)
+	r.errors += len(r.levels) - 1 - max_counter
+	return increase_counter == len(r.levels)-1 || decrease_counter == len(r.levels)-1
 }
 
 func (r *report) differby(least, most int) bool {
@@ -50,14 +55,14 @@ func (r *report) differby(least, most int) bool {
 	return differ_counter == len(r.levels)-1
 }
 
-func (r report) safe() bool {
-	return r.strictlyIncreasingOrDecreasing() && r.differby(1, 3)
-}
+// func (r *report) safe() bool {
+// 	return r.strictlyIncreasingOrDecreasing() && r.differby(1, 3)
+// }
 
-func parseInputPartA(input []string) []report {
+func parseInput(input []string) []report {
 	var reports []report
 	for _, line := range input {
-		r := report{} // needs a &
+		r := newReport()
 		levels := strings.Split(line, " ")
 		for _, level := range levels {
 			level = strings.TrimRight(level, "\r") // this is needed for windows?
@@ -68,33 +73,49 @@ func parseInputPartA(input []string) []report {
 			}
 			r.levels = append(r.levels, levelInt)
 		}
-		reports = append(reports, r)
+		reports = append(reports, *r)
 	}
 	return reports
 }
 
 func partA(input []string) {
-
-	reports := parseInputPartA(input)
-	// fmt.Println(reports)
+	reports := parseInput(input)
 	var safe_reports int
-	for _, r := range reports {
+	for i := 0; i < len(reports); i++ {
+		reports[i].differby(1, 3)
+		reports[i].strictlyIncreasingOrDecreasing()
 
-		if r.safe() {
-			fmt.Println(r)
+		if reports[i].errors == 0 {
 			safe_reports++
 		}
+
+		// fmt.Println("report:", reports[i])
 	}
-	fmt.Println("part_a:", safe_reports)
+	fmt.Println("part a:", safe_reports)
 
+	// fmt.Println("Number of safe reports:", safe_reports)
 }
+func removeElement(slice []int, i int) []int {
+    return append(slice[:i], slice[i+1:]...)
+}
+
 func partB(input []string) {
-	fmt.Println("part_b:")
-}
+	reports := parseInput(input)
+	var safe_reports int
+	for i := 0; i < len(reports); i++ {
+		for j := 0; j < len(reports[i].levels); j++ {
+			
+		if reports[i].errors <= 1 {
+			safe_reports++
+		}
 
+		// fmt.Println("report:", reports[i])
+	}
+	fmt.Println("part b:", safe_reports)
+}
 func main() {
-	// load_file := example_input
-	load_file := input
+	load_file := example_input
+	// load_file := input
 	splitInput := strings.Split(strings.TrimSpace(string(load_file)), "\n")
 
 	partA(splitInput)
