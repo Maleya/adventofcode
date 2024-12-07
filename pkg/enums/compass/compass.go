@@ -1,5 +1,4 @@
 package compass
-
 type Direction int
 
 const (
