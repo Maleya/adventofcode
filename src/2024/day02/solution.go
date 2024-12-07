@@ -53,6 +53,17 @@ func (r *report) differby(least, most int) bool {
 func (r report) safe() bool {
 	return r.strictlyIncreasingOrDecreasing() && r.differby(1, 3)
 }
+func (r report) popAll() []report {
+	var reports []report
+	for i := 0; i < len(r.levels); i++ {
+		popedLevels := make([]int, len(r.levels)-1)
+		copy(popedLevels, r.levels[:i])
+		copy(popedLevels[i:], r.levels[i+1:])
+		re := report{popedLevels, r.errors}
+		reports = append(reports, re)
+	}
+	return reports
+}
 
 func parseInputPartA(input []string) []report {
 	var reports []report
@@ -76,12 +87,10 @@ func parseInputPartA(input []string) []report {
 func partA(input []string) {
 
 	reports := parseInputPartA(input)
-	// fmt.Println(reports)
 	var safe_reports int
 	for _, r := range reports {
 
 		if r.safe() {
-			fmt.Println(r)
 			safe_reports++
 		}
 	}
@@ -89,7 +98,22 @@ func partA(input []string) {
 
 }
 func partB(input []string) {
-	fmt.Println("part_b:")
+	reports := parseInputPartA(input)
+	var safe_reports int
+	for _, r := range reports {
+		if r.safe() {
+			safe_reports++
+		} else {
+			for _, r := range r.popAll() {
+				if r.safe() {
+					safe_reports++
+					break
+				}
+			}
+		}
+	}
+	fmt.Println("part_b:", safe_reports)
+
 }
 
 func main() {
